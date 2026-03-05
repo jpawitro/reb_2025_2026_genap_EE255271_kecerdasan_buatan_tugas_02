@@ -1,0 +1,29 @@
+# ── macOS ────────────────────────────────────────────────────────────────────
+.DS_Store
+
+# ── References template ───────────────────────────────────────────────────────
+references/template/
+
+# ── Python ───────────────────────────────────────────────────────────────────
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+.venv/
+*.egg-info/
+dist/
+build/
+
+# ── LaTeX auxiliary files ─────────────────────────────────────────────────────
+report/*.aux
+report/*.bbl
+report/*.blg
+report/*.fdb_latexmk
+report/*.fls
+report/*.log
+report/*.out
+report/*.toc
+report/*.lof
+report/*.lot
+report/*.synctex.gz
+report/*.synctex(busy)
