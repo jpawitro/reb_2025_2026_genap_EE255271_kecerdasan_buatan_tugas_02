@@ -1,12 +1,9 @@
 """
 Modul Logika Fuzzy - Tugas 2 Kecerdasan Buatan (EE255271)
-
-File ini identik dengan implementasi sebelumnya tetapi diletakkan di bawah
-`src/` agar struktur proyek lebih rapi.
 """
 
 
-def fuzzy_suhu(suhu, a, b, c):
+def fuzzy_suhu(suhu: float, a: float, b: float, c: float) -> float:
     """Menghitung derajat keanggotaan suhu menggunakan fungsi segitiga.
 
     Parameter:
@@ -18,22 +15,25 @@ def fuzzy_suhu(suhu, a, b, c):
     Kembalian:
         float: Derajat keanggotaan bernilai antara 0 dan 1.
     """
-    # Tangani segitiga degenerate untuk menghindari pembagian dengan nol.
-    # Jika sisi kiri vertikal (b == a) maka derajat keanggotaan 1 hanya pada b.
-    if b == a:
-        if suhu < b:
-            return 1.0
-    else:
-        if a <= suhu <= b:
-            return (suhu - a) / (b - a)
+    # Kasus khusus: a == b == c (titik tunggal), hindari pembagian nol total.
+    if a == b == c == suhu:
+        return 1.0
 
-    # Jika sisi kanan vertikal (c == b) maka derajat keanggotaan 1 hanya pada b.
-    if c == b:
-        if suhu >= c:
-            return 1.0
+    # Left shoulder: a == b, bernilai 1 untuk semua suhu di sisi kiri puncak.
+    elif suhu <= a == b:
+        return 1.0
+
+    # Sisi naik hanya valid saat b > a, sehingga aman dari pembagian nol.
+    elif a < suhu <= b:
+        return (suhu - a) / (b - a)
+
+    # Right shoulder: b == c, bernilai 1 untuk semua suhu di sisi kanan puncak.
+    elif b == c <= suhu:
+        return 1.0
+
+    # Sisi turun hanya valid saat c > b, sehingga aman dari pembagian nol.
+    elif b <= suhu < c:
+        return (c - suhu) / (c - b)
+
+    else:
         return 0.0
-    else:
-        if b <= suhu <= c:
-            return (c - suhu) / (c - b)
-
-    return 0.0

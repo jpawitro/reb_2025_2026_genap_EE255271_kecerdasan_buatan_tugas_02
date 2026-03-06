@@ -1,8 +1,5 @@
 """
 Plot fungsi keanggotaan fuzzy.
-
-Gunakan `python -m src.plot_fuzzy` atau jalankan langsung file ini dari root
-dengan `python src/plot_fuzzy.py`.
 """
 
 from __future__ import annotations
@@ -23,7 +20,7 @@ def _membership_values(a: float, b: float, c: float, xs: Iterable[float]) -> np.
     return np.array([fuzzy_suhu(float(x), a, b, c) for x in xs])
 
 
-def plot_memberships(xmin: float = 0.0,
+def plot_memberships(xmin: float = 10.0,
                      xmax: float = 40.0,
                      num: int = 401,
                      save_path: Optional[str] = None,
@@ -35,8 +32,8 @@ def plot_memberships(xmin: float = 0.0,
     xs = np.linspace(xmin, xmax, num)
 
     cases = [
-        ("Dingin", (10, 10, 25), r"$\mu_{tD}(t)$"),
-        ("Sedang", (10, 25, 35), r"$\mu_{tS}(t)$"),
+        ("Dingin", (15, 15, 25), r"$\mu_{tD}(t)$"),
+        ("Sedang", (15, 25, 35), r"$\mu_{tS}(t)$"),
         ("Panas",  (25, 35, 35), r"$\mu_{tP}(t)$"),
     ]
 
@@ -66,6 +63,3 @@ def plot_memberships(xmin: float = 0.0,
 
     if show:
         plt.show()
-
-
-# Entry-point removed: call plotting from project root `run.py` instead.
