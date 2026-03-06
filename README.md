@@ -17,11 +17,11 @@ Derajat keanggotaan dihitung dengan rumus:
 $$
 \mu(t) =
 \begin{cases}
-1 & \text{jika } t = a = b = c \\[4pt]
-1 & \text{jika } t \leq a = b \\[4pt]
-\dfrac{t - a}{b - a} & \text{jika } a < t \leq b \\[6pt]
-\dfrac{c - t}{c - b} & \text{jika } b \leq t < c \\[6pt]
-1 & \text{jika } b = c \leq t \\[4pt]
+1 & \text{jika } t = a = b = c \\
+1 & \text{jika } t \leq a = b \\
+\dfrac{t - a}{b - a} & \text{jika } a < t \leq b \\
+\dfrac{c - t}{c - b} & \text{jika } b \leq t < c \\
+1 & \text{jika } b = c \leq t \\
 0 & \text{lainnya}
 \end{cases}
 $$
