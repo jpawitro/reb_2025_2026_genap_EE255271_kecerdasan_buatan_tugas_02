@@ -12,6 +12,7 @@
 \usepackage{fancyhdr}
 \usepackage{listings}
 \usepackage{xcolor}
+\usepackage{placeins}
 
 \geometry{
   a4paper,
@@ -40,7 +41,7 @@
   captionpos=b,
 }
 
-\title{Tugas 2: Implementasi Logika Fuzzy\\
+\title{Tugas 2: Implementasi Fuzzy Logic\\
   \large Fungsi Keanggotaan Segitiga untuk Klasifikasi Temperatur}
 \date{\today}
 
@@ -74,7 +75,7 @@
   Author(s):       & Joko Pawitro\\
   NRP:             & 6022251005\\
   Teacher:         & Muhammad Qomaruz Zaman, S.T., M.T., Ph.D.\\
-  Class name:      & Kecerdasan Artifisial (EE255271)\\
+  Class name:      & Kecerdasan Buatan (EE255271)\\
   GitHub repo link:& \href{https://github.com/jpawitro/reb_2025_2026_genap_EE255271_kecerdasan_buatan_tugas_02}{Repo Tugas 2 AI}
 \end{tabular}
 \vspace{0.8cm}
@@ -84,16 +85,16 @@
 % ===========================================================================
 
 Tugas ini meminta implementasi fungsi keanggotaan (\textit{membership function})
-logika fuzzy berbentuk segitiga untuk mengklasifikasikan nilai temperatur ke dalam
+Fuzzy Logic berbentuk segitiga untuk mengklasifikasikan nilai temperatur ke dalam
 tiga himpunan fuzzy:
 
 \begin{itemize}
-  \item \textbf{Dingin} (dingin): fungsi bahu kiri dengan parameter $(a, b, c) = (10, 10, 25)$.
-  \item \textbf{Sedang} (normal): fungsi segitiga simetris dengan parameter $(a, b, c) = (10, 25, 35)$.
+  \item \textbf{Dingin} (dingin): fungsi bahu kiri dengan parameter $(a, b, c) = (15, 15, 25)$.
+  \item \textbf{Sedang} (normal): fungsi segitiga dengan parameter $(a, b, c) = (15, 25, 35)$.
   \item \textbf{Panas} (panas): fungsi bahu kanan dengan parameter $(a, b, c) = (25, 35, 35)$.
 \end{itemize}
 
-Rentang temperatur yang digunakan adalah $t \in [0, 40]\,^{\circ}\mathrm{C}$. Setelah
+Rentang temperatur yang digunakan adalah $t \in [10, 40]\,^{\circ}\mathrm{C}$. Setelah
 fungsi keanggotaan diimplementasikan, dibuat plot visualisasi ketiga fungsi tersebut
 serta pengujian unit (\textit{unit test}) untuk memvalidasi kebenaran implementasi.
 
@@ -101,35 +102,37 @@ serta pengujian unit (\textit{unit test}) untuk memvalidasi kebenaran implementa
 \section*{Dasar Teori}
 % ===========================================================================
 
-Logika fuzzy, yang diperkenalkan oleh Zadeh \cite{zadeh1965fuzzy}, merupakan
+Fuzzy Logic merupakan
 perluasan dari logika biner klasik yang memungkinkan nilai kebenaran bersifat kontinu
-dalam rentang $[0, 1]$. Nilai tersebut disebut \textit{derajat keanggotaan}
+dalam rentang $[0, 1]$ \cite{zaman2026fuzzyset}. Nilai tersebut disebut \textit{derajat keanggotaan}
 ($\mu$) dan menggambarkan seberapa jauh suatu elemen $x$ termasuk ke dalam suatu
-himpunan fuzzy \cite{klir1995fuzzy}.
+himpunan fuzzy \cite{yen1999fuzzy}.
 
 \subsection*{Fungsi Keanggotaan Segitiga}
 
 Fungsi keanggotaan segitiga (\textit{triangular membership function}) didefinisikan
 oleh tiga parameter $(a, b, c)$ di mana $a \le b \le c$
-\cite{ross2010fuzzy}:
+\cite{ross2004fuzzy}:
 
 \begin{equation}
   \label{eq:segitiga}
   \mu(t;\, a, b, c) =
   \begin{cases}
-    1, & t < a = b \quad \text{(bahu kiri: } a = b\text{)} \\[4pt]
-    \dfrac{t - a}{b - a}, & a \le t \le b \quad (b \ne a) \\[6pt]
-    \dfrac{c - t}{c - b}, & b \le t \le c \quad (c \ne b) \\[6pt]
-    1, & t \ge c = b \quad \text{(bahu kanan: } c = b\text{)} \\[4pt]
+    1, & t = a = b = c \quad \text{(titik tunggal)} \\[4pt]
+    1, & t \le a = b \quad \text{(bahu kiri)} \\[4pt]
+    \dfrac{t - a}{b - a}, & a < t \le b \\[6pt]
+    \dfrac{c - t}{c - b}, & b \le t < c \\[6pt]
+    1, & b = c \le t \quad \text{(bahu kanan)} \\[4pt]
     0, & \text{lainnya}
   \end{cases}
 \end{equation}
 
 Kasus degenerate terjadi ketika $a = b$ (bahu kiri, \textit{left shoulder}) atau
-$b = c$ (bahu kanan, \textit{right shoulder}). Pada bahu kiri, derajat keanggotaan
-bernilai 1 untuk seluruh nilai $t \le a$; pada bahu kanan bernilai 1 untuk
-seluruh $t \ge c$. Implementasi perlu menangani pembagian dengan nol pada
-kedua kasus ini secara eksplisit.
+$b = c$ (bahu kanan, \textit{right shoulder}). Pada bahu kiri, derajat
+keanggotaan bernilai 1 untuk seluruh nilai $t \le a$; pada bahu kanan bernilai 1
+untuk seluruh $t \ge c$. Selain itu, kasus $a = b = c$ diperlakukan sebagai
+titik tunggal dengan derajat keanggotaan 1 hanya saat $t = a$. Implementasi
+menangani semua kasus tersebut secara eksplisit untuk menghindari pembagian nol.
 
 % ===========================================================================
 \section*{Implementasi}
@@ -141,16 +144,18 @@ Proyek diorganisasikan sebagai berikut:
 
 \begin{lstlisting}[style=python, caption={Struktur direktori proyek}]
 tugas_2_fuzzy_logic/
+|-- README.md
 |-- run.py              # Entry-point: generate plot ke plots/
 |-- pyproject.toml
-|-- references.bib
 |-- plots/
 |   `-- memberships.png # Output plot fungsi keanggotaan
-|-- references/
-|   `-- template/       # Berkas template laporan
 |-- src/
 |   |-- fuzzy_script.py # Implementasi fungsi keanggotaan
 |   `-- plot_fuzzy.py   # Modul visualisasi
+|-- report/
+|   |-- laporan_fuzzy_logic_joko_pawitro_6022251005.tex
+|   |-- laporan_fuzzy_logic_joko_pawitro_6022251005.pdf
+|   `-- references.bib
 `-- tests/
     `-- test_fuzzy.py   # Unit test
 \end{lstlisting}
@@ -162,7 +167,7 @@ Fungsi menerima nilai suhu \texttt{suhu} dan tiga parameter segitiga \texttt{a},
 \texttt{c}, lalu mengembalikan derajat keanggotaan sesuai Persamaan~\ref{eq:segitiga}.
 
 \begin{lstlisting}[style=python, caption={src/fuzzy\_script.py -- fungsi keanggotaan segitiga}]
-def fuzzy_suhu(suhu, a, b, c):
+def fuzzy_suhu(suhu: float, a: float, b: float, c: float) -> float:
     """Menghitung derajat keanggotaan suhu menggunakan fungsi segitiga.
 
     Parameter:
@@ -174,35 +179,42 @@ def fuzzy_suhu(suhu, a, b, c):
     Kembalian:
         float: Derajat keanggotaan bernilai antara 0 dan 1.
     """
-    # Tangani segitiga degenerate untuk menghindari pembagian dengan nol.
-    if b == a:
-        if suhu < b:
-            return 1.0
-    else:
-        if a <= suhu <= b:
-            return (suhu - a) / (b - a)
+    # Kasus khusus: a == b == c (titik tunggal), hindari pembagian nol total.
+    if a == b == c == suhu:
+        return 1.0
 
-    if c == b:
-        if suhu >= c:
-            return 1.0
+    # Left shoulder: a == b, bernilai 1 untuk semua suhu di sisi kiri puncak.
+    elif suhu <= a == b:
+        return 1.0
+
+    # Sisi naik hanya valid saat b > a, sehingga aman dari pembagian nol.
+    elif a < suhu <= b:
+        return (suhu - a) / (b - a)
+
+    # Right shoulder: b == c, bernilai 1 untuk semua suhu di sisi kanan puncak.
+    elif b == c <= suhu:
+        return 1.0
+
+    # Sisi turun hanya valid saat c > b, sehingga aman dari pembagian nol.
+    elif b <= suhu < c:
+        return (c - suhu) / (c - b)
+
+    else:
         return 0.0
-    else:
-        if b <= suhu <= c:
-            return (c - suhu) / (c - b)
-
-    return 0.0
 \end{lstlisting}
 
 Aspek penting dari implementasi:
 \begin{itemize}
-  \item \textbf{Kasus degenerate kiri} ($b = a$): kondisi \texttt{suhu < b}
-        memastikan nilai 1 diberikan untuk \emph{semua} $t < a$, memodelkan bahu
-        kiri yang melebar ke kiri tanpa batas.
-  \item \textbf{Kasus degenerate kanan} ($c = b$): kondisi \texttt{suhu >= c}
-        memastikan nilai 1 diberikan untuk \emph{semua} $t \ge c$, memodelkan bahu
-        kanan yang melebar ke kanan tanpa batas.
-  \item Di luar rentang $[a, c]$ (untuk segitiga penuh) fungsi mengembalikan 0
-        secara implisit.
+    \item \textbf{Kasus titik tunggal} ($a = b = c$): fungsi mengembalikan 1
+      hanya saat \texttt{suhu} sama dengan titik tersebut, selain itu 0.
+    \item \textbf{Kasus degenerate kiri} ($a = b$): kondisi \texttt{suhu <= a == b}
+      memastikan nilai 1 diberikan untuk \emph{semua} $t \le a$, memodelkan bahu
+      kiri yang melebar ke kiri tanpa batas.
+    \item \textbf{Kasus degenerate kanan} ($b = c$): kondisi \texttt{b == c <= suhu}
+      memastikan nilai 1 diberikan untuk \emph{semua} $t \ge c$, memodelkan bahu
+      kanan yang melebar ke kanan tanpa batas.
+    \item Bagian sisi naik dan sisi turun dipisahkan dengan kondisi \texttt{elif},
+      sehingga pembagian nol pada $(b-a)$ dan $(c-b)$ tetap terhindari.
 \end{itemize}
 
 \subsection*{Visualisasi (\texttt{plot\_fuzzy.py})}
@@ -220,8 +232,8 @@ Parameter yang digunakan untuk ketiga himpunan fuzzy:
     \toprule
     \textbf{Himpunan} & $a$ & $b$ & $c$ & \textbf{Bentuk} \\
     \midrule
-    Dingin & 10 & 10 & 25 & Bahu kiri (\textit{left shoulder}) \\
-    Sedang & 10 & 25 & 35 & Segitiga penuh \\
+    Dingin & 15 & 15 & 25 & Bahu kiri (\textit{left shoulder}) \\
+    Sedang & 15 & 25 & 35 & Segitiga penuh \\
     Panas  & 25 & 35 & 35 & Bahu kanan (\textit{right shoulder}) \\
     \bottomrule
   \end{tabular}
@@ -236,24 +248,24 @@ Parameter yang digunakan untuk ketiga himpunan fuzzy:
 
 Gambar~\ref{fig:memberships} menampilkan tiga subplot hasil visualisasi fungsi
 keanggotaan untuk masing-masing himpunan fuzzy \textbf{Dingin}, \textbf{Sedang},
-dan \textbf{Panas} pada rentang temperatur $t \in [0, 40]\,^{\circ}\mathrm{C}$.
+dan \textbf{Panas} pada rentang temperatur $t \in [10, 40]\,^{\circ}\mathrm{C}$.
 
 \begin{figure}[htbp]
   \centering
   \includegraphics[width=0.75\linewidth]{../plots/memberships.png}
   \caption{Fungsi keanggotaan segitiga untuk tiga himpunan fuzzy temperatur.
-    \textit{Atas}: $\mu_{tD}(t)$ -- Dingin (bahu kiri: $\mu=1$ untuk $t \le 10$, turun linear ke 0 pada $t=25$).
-    \textit{Tengah}: $\mu_{tS}(t)$ -- Sedang (segitiga penuh, naik dari $t=10$, puncak di $t=25$, turun ke $t=35$).
+    \textit{Atas}: $\mu_{tD}(t)$ -- Dingin (bahu kiri: $\mu=1$ untuk $t \le 15$, turun linear ke 0 pada $t=25$).
+    \textit{Tengah}: $\mu_{tS}(t)$ -- Sedang (segitiga penuh, naik dari $t=15$, puncak di $t=25$, turun ke $t=35$).
     \textit{Bawah}: $\mu_{tP}(t)$ -- Panas (bahu kanan: naik dari $t=25$, $\mu=1$ untuk semua $t \ge 35$).}
   \label{fig:memberships}
 \end{figure}
 
 Dari Gambar~\ref{fig:memberships} dapat diamati karakteristik setiap himpunan:
 \begin{itemize}
-  \item \textbf{Dingin} $\mu_{tD}(t)$: derajat keanggotaan bernilai 1 untuk semua
-        $t \le 10\,^{\circ}\mathrm{C}$ (bahu kiri), lalu menurun secara linear hingga
+      \item \textbf{Dingin} $\mu_{tD}(t)$: derajat keanggotaan bernilai 1 untuk semua
+        $t \le 15\,^{\circ}\mathrm{C}$ (bahu kiri), lalu menurun secara linear hingga
         0 pada $t = 25\,^{\circ}\mathrm{C}$.
-  \item \textbf{Sedang} $\mu_{tS}(t)$: naik linear dari 0 pada $t=10$ menuju puncak 1 di $t=25$,
+    \item \textbf{Sedang} $\mu_{tS}(t)$: naik linear dari 0 pada $t=15$ menuju puncak 1 di $t=25$,
         lalu turun linear ke 0 pada $t=35$.
   \item \textbf{Panas} $\mu_{tP}(t)$: naik linear dari 0 pada $t=25$ menuju 1 di
         $t = 35\,^{\circ}\mathrm{C}$, kemudian bernilai 1 untuk semua $t \ge 35\,^{\circ}\mathrm{C}$
@@ -272,8 +284,8 @@ untuk tiga kombinasi parameter yang digunakan dalam pengujian unit.
     \toprule
     $t$ & $a$ & $b$ & $c$ & $\mu(t;\,a,b,c)$ \\
     \midrule
-    32.5 &  0 & 10 & 25 & 0.00 \\
-    32.5 & 10 & 25 & 35 & 0.25 \\
+    30.0 & 15 & 15 & 25 & 0.00 \\
+    32.5 & 15 & 25 & 35 & 0.25 \\
     32.5 & 25 & 35 & 35 & 0.75 \\
     \bottomrule
   \end{tabular}
@@ -282,15 +294,17 @@ untuk tiga kombinasi parameter yang digunakan dalam pengujian unit.
 
 Perhitungan manual untuk baris kedua dan ketiga:
 \begin{equation}
-  \mu(32.5;\, 10, 25, 35) = \frac{35 - 32.5}{35 - 25} = \frac{2.5}{10} = 0.25
+  \mu(32.5;\, 15, 25, 35) = \frac{35 - 32.5}{35 - 25} = \frac{2.5}{10} = 0.25
 \end{equation}
 \begin{equation}
   \mu(32.5;\, 25, 35, 35) = \frac{32.5 - 25}{35 - 25} = \frac{7.5}{10} = 0.75
 \end{equation}
 
+\FloatBarrier
 % ===========================================================================
 \section*{Pengujian Unit}
 % ===========================================================================
+\FloatBarrier
 
 Validasi implementasi dilakukan dengan tiga \textit{unit test} pada
 \texttt{tests/test\_fuzzy.py} menggunakan \texttt{unittest}:
@@ -298,37 +312,37 @@ Validasi implementasi dilakukan dengan tiga \textit{unit test} pada
 \begin{lstlisting}[style=python, caption={tests/test\_fuzzy.py -- unit test fungsi keanggotaan}]
 class TestFuzzySuhu(unittest.TestCase):
 
-    def test_di_luar_rentang(self):
-        """Nilai suhu di luar rentang harus menghasilkan 0."""
-        self.assertEqual(fuzzy_suhu(32.5, 0, 10, 25), 0)
+    def test_dingin(self):
+        """Suhu di luar rentang fungsi keanggotaan Dingin harus menghasilkan 0."""
+      self.assertEqual(fuzzy_suhu(30.0, 15, 15, 25), 0)
 
-    def test_sisi_turun(self):
-        """Nilai suhu pada sisi turun segitiga harus menghasilkan nilai benar."""
-        self.assertAlmostEqual(fuzzy_suhu(32.5, 10, 25, 35), 0.25)
+    def test_sedang(self):
+        """Nilai suhu pada sisi turun fungsi keanggotaan Sedang harus menghasilkan nilai benar."""
+      self.assertAlmostEqual(fuzzy_suhu(32.5, 15, 25, 35), 0.25)
 
-    def test_sisi_naik(self):
-        """Nilai suhu pada sisi naik segitiga harus menghasilkan nilai benar."""
+    def test_panas(self):
+        """Nilai suhu pada sisi naik fungsi keanggotaan Panas harus menghasilkan nilai benar."""
         self.assertAlmostEqual(fuzzy_suhu(32.5, 25, 35, 35), 0.75)
 \end{lstlisting}
 
 Ketiga test tersebut mencakup tiga kondisi kritis:
 \begin{enumerate}
-  \item \textbf{\texttt{test\_di\_luar\_rentang}}: memastikan fungsi mengembalikan 0
-        ketika suhu tidak memenuhi kondisi keanggotaan manapun.
-  \item \textbf{\texttt{test\_sisi\_turun}}: memvalidasi perhitungan pada sisi turun
-        ($b < t \le c$) fungsi segitiga penuh (Sedang).
-  \item \textbf{\texttt{test\_sisi\_naik}}: memvalidasi perhitungan pada sisi naik
-        ($a \le t \le b$) untuk fungsi bahu kanan (Panas).
+  \item \textbf{\texttt{test\_dingin}}: memastikan fungsi mengembalikan 0
+        ketika suhu berada di luar rentang himpunan Dingin.
+  \item \textbf{\texttt{test\_sedang}}: memvalidasi perhitungan pada sisi turun
+        ($b < t \le c$) fungsi segitiga penuh untuk himpunan Sedang.
+  \item \textbf{\texttt{test\_panas}}: memvalidasi perhitungan pada sisi naik
+        ($a \le t \le b$) untuk fungsi bahu kanan himpunan Panas.
 \end{enumerate}
 
 Semua test lulus (\texttt{OK}) saat dijalankan dengan
-\texttt{python -m pytest tests/} dari direktori root proyek.
+\texttt{python -m unittest discover -s tests} dari direktori root proyek.
 
 % ===========================================================================
 \section*{Kesimpulan}
 % ===========================================================================
 
-Tugas 2 berhasil mengimplementasikan fungsi keanggotaan segitiga untuk logika fuzzy
+Tugas 2 berhasil mengimplementasikan fungsi keanggotaan segitiga untuk Fuzzy Logic
 menggunakan Python tanpa dependensi library fuzzy eksternal. Poin-poin utama:
 
 \begin{enumerate}
